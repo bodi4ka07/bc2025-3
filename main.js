@@ -23,17 +23,20 @@ if (!fs.existsSync(options.input)) {
   process.exit(1);
 }
 
-// 3. Читання JSON файлу
-let data;
+// 3. Читання файлу построково (NDJSON / JSON Lines)
+let dataLines;
 try {
-  data = JSON.parse(fs.readFileSync(options.input, 'utf-8'));
+  dataLines = fs.readFileSync(options.input, 'utf-8')
+    .split('\n')                       // розбиваємо на рядки
+    .filter(line => line.trim() !== '') // прибираємо пусті рядки
+    .map(line => JSON.parse(line));     // парсимо кожен рядок окремо
 } catch (err) {
   console.error("Error reading JSON file:", err.message);
   process.exit(1);
 }
 
 // 4. Фільтрація за airtime (якщо задано)
-let results = data;
+let results = dataLines;
 if (options.airtime) {
   const minAirtime = parseInt(options.airtime);
   results = results.filter(flight => flight.AIR_TIME > minAirtime);
